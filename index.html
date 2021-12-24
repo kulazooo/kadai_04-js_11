@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Chat</title>
+</head>
+<body>
+
+     <!-- コンテンツ表示画面 -->
+
+    <div id="output" style="overflow: auto;height: 300px;"></div>
+    <div>
+            <div>
+                名前：<input type="text" id="uname">
+            </div>
+            <div>
+              <!-- <form name="form1">
+                  <input id="text" type="text" cols="100" rows="10" onkeypress="enter();">
+                </form> -->
+                <textarea id="text" cols="100" rows="10"></textarea>
+                <br>
+                <button id="send">送信</button>
+                <!-- <input type="button" value="削除" onclick="SomeDeleteRowFunction(msg);"></input> -->
+            </div>
+    </div>
+  
+
+<!-- Jquery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- Jquery -->
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved } 
+from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDha4F2cBgQ33W9CNOtmOvIdo4OgERrXY0",
+      authDomain: "gsdemo-2594a.firebaseapp.com",
+      projectId: "gsdemo-2594a",
+      storageBucket: "gsdemo-2594a.appspot.com",
+      messagingSenderId: "656639781182",
+      appId: "1:656639781182:web:4acf189223684022a8646f"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    // 追加2
+    const db  = getDatabase(app); //RealtimeDBに接続
+    const dbRef = ref(db,"chat2"); //RealtimeDB内の"chat"を使う
+
+     // 送信処理
+
+    $('#send').on('click', function(){
+    const uname = $('#uname').val();
+    const text = $('#text').val();
+    alert(uname+text);
+
+      const msg = {
+        uname: $('#uname').val(),
+        text: $('#text').val(),
+        
+      }
+    //ユニークKEYを生成 = 絶対にかぶらない番号みたいなもの
+    　const newPostRef = push(dbRef);
+      //"chat"にユニークKEYをつけてオブジェクトデータを登録
+    　set(newPostRef, msg);
+    });
+
+    //受信処理
+    onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        const key = data.key; //これが固有の鍵
+        
+        console.log(key, '鍵')
+    // テンプレートリテラル
+        let hh = `
+        <div class="message" data-key=${key}>
+          <!-- <input type="text" value=${msg.uname} class="uname"/> -->
+          <!-- <input type="text" value=${msg.text} class="text"/> -->
+          <p>${msg.uname}</p>
+          <p>${msg.text}</p>
+          <p class="delete">削除</p>
+        </div>`;
+        
+    //この一つの塊が「鍵」を表してる
+
+    $("#output").append(hh);
+      });
+
+    $(document).on("click", ".delete", function(){
+        alert("削除");
+      });
+
+   // enterキーで送信
+    $("#text").on("keydown", function(e){
+        console.log(e);
+        if(e.keyCode == 13){
+        const msg = {
+          // uname: $("#uname").val(),
+          text: $("#text").val(),
+      };
+      const newPostRef = push(dbRef);
+      set(newPostRef, msg);
+    }
+    });
+
+
+$(document).on("click", ".delete", function(){
+    //クリックされた親の鍵を取得する
+    var v = $(this).parent().data().key;
+
+    console.log(v, 'vvv') 
+
+    //vは鍵
+    remove(ref(db, 'chat/' + v));
+
+    //htmlを消す方法
+    $(this).parent().remove();
+  });
+
+
+</script>
+</body>
+</html>
